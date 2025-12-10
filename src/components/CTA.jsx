@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 // Componente Timer Countdown 24h
 const CountdownTimer = () => {
@@ -165,21 +166,36 @@ const CTA = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Salva il lead nel localStorage
-    const newLead = {
-      ...formData,
-      date: new Date().toLocaleString('it-IT'),
-    };
-    
-    const existingLeads = JSON.parse(localStorage.getItem('tradeboost_leads') || '[]');
-    existingLeads.push(newLead);
-    localStorage.setItem('tradeboost_leads', JSON.stringify(existingLeads));
-    
-    // Simula un piccolo delay per UX
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      // Salva il lead su Supabase
+      const { data, error } = await supabase
+        .from('leads')
+        .insert([formData]);
+      
+      if (error) {
+        console.error('Errore nel salvare il lead:', error);
+        alert('Errore nel salvare i dati. Riprova.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Mantieni anche il localStorage per compatibilità
+      const newLead = {
+        ...formData,
+        date: new Date().toLocaleString('it-IT'),
+      };
+      
+      const existingLeads = JSON.parse(localStorage.getItem('tradeboost_leads') || '[]');
+      existingLeads.push(newLead);
+      localStorage.setItem('tradeboost_leads', JSON.stringify(existingLeads));
+      
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Errore:', error);
+      alert('Errore nel salvare i dati. Riprova.');
+      setIsSubmitting(false);
+    }
   };
 
   const inputStyle = {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 const Dashboard = () => {
   const [leads, setLeads] = useState([]);
@@ -9,6 +10,7 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Password admin (cambiala con una tua password sicura!)
   const ADMIN_PASSWORD = 'tradeboost2025';
@@ -21,6 +23,40 @@ const Dashboard = () => {
     } else {
       alert('Password sbagliata!');
     }
+  };
+
+  // Funzione per caricare i lead da Supabase
+  const loadLeads = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Errore nel caricare i lead:', error);
+        // Fallback al localStorage se Supabase fallisce
+        const localLeads = JSON.parse(localStorage.getItem('tradeboost_leads') || '[]');
+        setLeads(localLeads);
+        setFilteredLeads(localLeads);
+      } else {
+        // Converte i dati di Supabase nel formato atteso
+        const formattedLeads = data.map(lead => ({
+          ...lead,
+          date: new Date(lead.created_at).toLocaleString('it-IT')
+        }));
+        setLeads(formattedLeads);
+        setFilteredLeads(formattedLeads);
+      }
+    } catch (error) {
+      console.error('Errore nella connessione a Supabase:', error);
+      // Fallback al localStorage
+      const localLeads = JSON.parse(localStorage.getItem('tradeboost_leads') || '[]');
+      setLeads(localLeads);
+      setFilteredLeads(localLeads);
+    }
+    setLoading(false);
   };
 
   // Abilita il cursore normale nella dashboard
@@ -39,11 +75,10 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Carica i lead dal localStorage
-    const savedLeads = JSON.parse(localStorage.getItem('tradeboost_leads') || '[]');
-    setLeads(savedLeads);
-    setFilteredLeads(savedLeads);
-  }, []);
+    if (isAuthenticated) {
+      loadLeads();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     let result = leads;
@@ -90,32 +125,84 @@ const Dashboard = () => {
     link.click();
   };
 
-  const deleteLead = (index) => {
+  const deleteLead = async (leadId, index) => {
     if (confirm('Sei sicuro di voler eliminare questo lead?')) {
-      const newLeads = leads.filter((_, i) => i !== index);
-      setLeads(newLeads);
-      localStorage.setItem('tradeboost_leads', JSON.stringify(newLeads));
+      try {
+        // Se il lead ha un ID di Supabase, eliminalo dal database
+        if (leadId) {
+          const { error } = await supabase
+            .from('leads')
+            .delete()
+            .eq('id', leadId);
+
+          if (error) {
+            console.error('Errore nell\'eliminare il lead da Supabase:', error);
+          }
+        }
+
+        // Rimuovi anche dal localStorage per compatibilità
+        const newLeads = leads.filter((_, i) => i !== index);
+        setLeads(newLeads);
+        localStorage.setItem('tradeboost_leads', JSON.stringify(newLeads));
+      } catch (error) {
+        console.error('Errore nell\'eliminazione:', error);
+      }
     }
   };
 
-  const clearAllLeads = () => {
+  const clearAllLeads = async () => {
     if (confirm('Sei sicuro di voler eliminare TUTTI i lead? Questa azione è irreversibile.')) {
-      setLeads([]);
-      setFilteredLeads([]);
-      localStorage.setItem('tradeboost_leads', JSON.stringify([]));
+      try {
+        // Elimina tutti i lead da Supabase
+        const { error } = await supabase
+          .from('leads')
+          .delete()
+          .gte('id', 0); // Elimina tutti i record
+
+        if (error) {
+          console.error('Errore nell\'eliminare tutti i lead da Supabase:', error);
+        }
+
+        // Pulisci anche il localStorage
+        setLeads([]);
+        setFilteredLeads([]);
+        localStorage.setItem('tradeboost_leads', JSON.stringify([]));
+      } catch (error) {
+        console.error('Errore nell\'eliminazione:', error);
+      }
     }
   };
 
   // Demo: aggiungi lead di test
-  const addDemoLeads = () => {
+  const addDemoLeads = async () => {
     const demoLeads = [
-      { name: 'Marco Rossi', email: 'marco@test.com', phone: '+39 333 1234567', instagram: '@marcotrader', followers: '10k-50k', niche: 'forex', message: 'Voglio scalare il mio brand', date: new Date().toLocaleString('it-IT') },
-      { name: 'Giulia Bianchi', email: 'giulia@test.com', phone: '+39 340 9876543', instagram: '@giulia_fx', followers: '1k-10k', niche: 'crypto', message: 'Ho 8k followers su TikTok', date: new Date().toLocaleString('it-IT') },
-      { name: 'Luca Verdi', email: 'luca@test.com', phone: '+39 328 5551234', instagram: '@lucainvest', followers: '50k+', niche: 'affiliate', message: 'Già faccio 5k/mese, voglio scalare', date: new Date().toLocaleString('it-IT') },
+      { name: 'Marco Rossi', email: 'marco@test.com', phone: '+39 333 1234567', instagram: '@marcotrader', followers: '10k-50k', niche: 'forex', message: 'Voglio scalare il mio brand' },
+      { name: 'Giulia Bianchi', email: 'giulia@test.com', phone: '+39 340 9876543', instagram: '@giulia_fx', followers: '1k-10k', niche: 'crypto', message: 'Ho 8k followers su TikTok' },
+      { name: 'Luca Verdi', email: 'luca@test.com', phone: '+39 328 5551234', instagram: '@lucainvest', followers: '50k+', niche: 'affiliate', message: 'Già faccio 5k/mese, voglio scalare' },
     ];
-    const newLeads = [...leads, ...demoLeads];
-    setLeads(newLeads);
-    localStorage.setItem('tradeboost_leads', JSON.stringify(newLeads));
+
+    try {
+      // Inserisci i demo lead su Supabase
+      const { error } = await supabase
+        .from('leads')
+        .insert(demoLeads);
+
+      if (error) {
+        console.error('Errore nell\'inserire i demo lead:', error);
+      }
+
+      // Ricarica i lead
+      loadLeads();
+
+      // Mantieni anche nel localStorage per compatibilità
+      const newLeads = [...leads, ...demoLeads.map(lead => ({
+        ...lead,
+        date: new Date().toLocaleString('it-IT')
+      }))];
+      localStorage.setItem('tradeboost_leads', JSON.stringify(newLeads));
+    } catch (error) {
+      console.error('Errore nell\'aggiungere demo lead:', error);
+    }
   };
 
   const getNicheLabel = (niche) => {
@@ -215,7 +302,7 @@ const Dashboard = () => {
           }}>
             ← Torna al sito
           </a>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -240,20 +327,54 @@ const Dashboard = () => {
           <span style={{ fontSize: '28px' }}>📊</span>
           <h1 style={{ fontSize: '24px', fontWeight: 800 }}>
             Trade<span style={{ color: '#00ff88' }}>Boost</span> Dashboard
+            {loading && <span style={{ fontSize: '14px', color: '#888', marginLeft: '10px' }}>⏳ Caricando...</span>}
           </h1>
         </div>
-        <a href="/" style={{
-          padding: '10px 20px',
-          background: 'rgba(255,255,255,0.1)',
-          borderRadius: '8px',
-          fontSize: '14px',
-          transition: 'background 0.2s',
-        }}>
-          ← Torna al sito
-        </a>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <button
+            onClick={loadLeads}
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(0,255,136,0.1)',
+              border: '1px solid rgba(0,255,136,0.3)',
+              borderRadius: '6px',
+              color: '#00ff88',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            🔄 Ricarica
+          </button>
+          <a href="/" style={{
+            padding: '10px 20px',
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: '8px',
+            fontSize: '14px',
+            transition: 'background 0.2s',
+          }}>
+            ← Torna al sito
+          </a>
+        </div>
       </header>
 
       <div style={{ padding: '40px', maxWidth: '1600px', margin: '0 auto' }}>
+        {/* Stats Cards con indicatore Supabase */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginBottom: '20px',
+          padding: '12px 16px',
+          background: 'rgba(0,255,136,0.1)',
+          borderRadius: '8px',
+          border: '1px solid rgba(0,255,136,0.3)',
+        }}>
+          <span style={{ fontSize: '16px' }}>🗄️</span>
+          <span style={{ fontSize: '14px', color: '#00ff88', fontWeight: 600 }}>
+            Connesso a Supabase Database
+          </span>
+        </div>
+
         {/* Stats Cards */}
         <div style={{
           display: 'grid',
@@ -489,7 +610,7 @@ const Dashboard = () => {
                 <tbody>
                   {filteredLeads.map((lead, index) => (
                     <motion.tr
-                      key={index}
+                      key={lead.id || index}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.05 }}
@@ -535,7 +656,7 @@ const Dashboard = () => {
                       <td style={{ padding: '16px 20px', fontSize: '13px', color: '#888' }}>{lead.date}</td>
                       <td style={{ padding: '16px 20px', textAlign: 'center' }}>
                         <button
-                          onClick={() => deleteLead(index)}
+                          onClick={() => deleteLead(lead.id, index)}
                           style={{
                             padding: '6px 12px',
                             background: 'rgba(255,51,102,0.1)',
@@ -568,7 +689,7 @@ const Dashboard = () => {
             }}>
               {filteredLeads.filter(lead => lead.message).map((lead, index) => (
                 <div
-                  key={index}
+                  key={lead.id || index}
                   style={{
                     padding: '20px',
                     background: '#12121a',
