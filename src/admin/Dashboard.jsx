@@ -7,10 +7,31 @@ const Dashboard = () => {
   const [filterNiche, setFilterNiche] = useState('');
   const [filterFollowers, setFilterFollowers] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+
+  // Password admin (cambiala con una tua password sicura!)
+  const ADMIN_PASSWORD = 'tradeboost2025';
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      localStorage.setItem('tradeboost_admin_auth', 'true');
+    } else {
+      alert('Password sbagliata!');
+    }
+  };
 
   // Abilita il cursore normale nella dashboard
   useEffect(() => {
     document.body.style.cursor = 'auto';
+    
+    // Controlla se già autenticato
+    const isAuth = localStorage.getItem('tradeboost_admin_auth');
+    if (isAuth === 'true') {
+      setIsAuthenticated(true);
+    }
     
     return () => {
       document.body.style.cursor = 'none';
@@ -115,6 +136,89 @@ const Dashboard = () => {
     affiliate: leads.filter(l => l.niche === 'affiliate').length,
     bigFollowers: leads.filter(l => l.followers === '50k+' || l.followers === '10k-50k').length,
   };
+
+  // Se non autenticato, mostra form login
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#0a0a0f',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Inter', sans-serif",
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            background: '#12121a',
+            padding: '40px',
+            borderRadius: '20px',
+            border: '1px solid rgba(0,255,136,0.3)',
+            boxShadow: '0 0 40px rgba(0,255,136,0.1)',
+            textAlign: 'center',
+            maxWidth: '400px',
+            width: '90%',
+          }}
+        >
+          <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔐</div>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', marginBottom: '10px' }}>
+            Dashboard Admin
+          </h2>
+          <p style={{ color: '#888', marginBottom: '30px', fontSize: '14px' }}>
+            Inserisci la password per accedere ai lead
+          </p>
+          
+          <form onSubmit={handleLogin}>
+            <input
+              type="password"
+              placeholder="Password admin..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '16px 20px',
+                background: '#0a0a0f',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '16px',
+                outline: 'none',
+                marginBottom: '20px',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '16px 20px',
+                background: 'linear-gradient(135deg, #00ff88, #00cc6a)',
+                border: 'none',
+                borderRadius: '12px',
+                color: '#0a0a0f',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Accedi 🚀
+            </button>
+          </form>
+          
+          <a href="/" style={{
+            display: 'inline-block',
+            marginTop: '20px',
+            color: '#888',
+            fontSize: '14px',
+          }}>
+            ← Torna al sito
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
