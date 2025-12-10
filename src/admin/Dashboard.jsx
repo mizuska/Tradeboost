@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
 
   // Password admin (cambiala con una tua password sicura!)
-  const ADMIN_PASSWORD = 'tradeboost2025';
+  const ADMIN_PASSWORD = 'whitefx';
 
   const handleLogin = (e) => {
     e.preventDefault();
