@@ -212,16 +212,34 @@ const CTA = () => {
 
   return (
     <section id="cta" style={{
-      padding: '120px 40px',
+      padding: '120px 20px',
       background: 'linear-gradient(180deg, #0d0d14 0%, #0a0a0f 100%)',
     }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .cta-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          .cta-form {
+            grid-template-columns: 1fr !important;
+            padding: 24px !important;
+          }
+          .cta-form-full {
+            grid-column: span 1 !important;
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '60px',
-          alignItems: 'start',
-        }}>
+        <div 
+          className="cta-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '60px',
+            alignItems: 'start',
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -270,6 +288,7 @@ const CTA = () => {
           </motion.div>
 
           <motion.form
+            className="cta-form"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -416,6 +435,7 @@ const CTA = () => {
                   rows={3}
                   value={formData.message}
                   onChange={handleChange}
+                  className="cta-form-full"
                   style={{ ...inputStyle, gridColumn: 'span 2', resize: 'vertical' }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#00ff88';
@@ -429,6 +449,7 @@ const CTA = () => {
                 <motion.button
                   type="submit"
                   disabled={isSubmitting}
+                  className="cta-form-full"
                   whileHover={{ y: -3, boxShadow: '0 15px 40px rgba(0, 255, 136, 0.3)' }}
                   whileTap={{ scale: 0.98 }}
                   style={{
@@ -450,13 +471,16 @@ const CTA = () => {
                   <span>{isSubmitting ? 'Invio in corso...' : '🍀 Tenta la Fortuna - Candidati Ora'}</span>
                   {!isSubmitting && <span>→</span>}
                 </motion.button>
-                <p style={{
-                  gridColumn: 'span 2',
-                  textAlign: 'center',
-                  fontSize: '14px',
-                  color: '#888',
-                  marginTop: '10px',
-                }}>
+                <p 
+                  className="cta-form-full"
+                  style={{
+                    gridColumn: 'span 2',
+                    textAlign: 'center',
+                    fontSize: '14px',
+                    color: '#888',
+                    marginTop: '10px',
+                  }}
+                >
                   🔒 I tuoi dati sono al sicuro. Zero spam, promesso.
                 </p>
               </>
