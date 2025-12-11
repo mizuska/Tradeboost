@@ -135,13 +135,13 @@ const Hero = () => {
         >
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '36px', fontWeight: 800 }}>
-              <AnimatedCounter target={127} />
+              <AnimatedCounter target={40} suffix="+" />
             </span>
             <span style={{ fontSize: '14px', color: '#888', marginTop: '4px' }}>Brand Finanziati</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '36px', fontWeight: 800 }}>
-              <AnimatedCounter target={2.4} suffix="M€" />
+              <AnimatedCounter target={1} suffix="M€+" />
             </span>
             <span style={{ fontSize: '14px', color: '#888', marginTop: '4px' }}>Budget Investito</span>
           </div>
@@ -150,6 +150,12 @@ const Hero = () => {
               <AnimatedCounter target={340} suffix="%" />
             </span>
             <span style={{ fontSize: '14px', color: '#888', marginTop: '4px' }}>ROI Medio</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '36px', fontWeight: 800, color: '#ff3366', textShadow: '0 0 20px rgba(255, 51, 102, 0.3)' }}>
+              3
+            </span>
+            <span style={{ fontSize: '14px', color: '#888', marginTop: '4px' }}>Posti Disponibili</span>
           </div>
         </motion.div>
 
