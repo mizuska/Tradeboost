@@ -2,31 +2,41 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-// Componente Timer Countdown 24h
+// Componente Timer Countdown - Urgency Marketing
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({
-    hours: 23,
-    minutes: 59,
-    seconds: 59,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
 
   useEffect(() => {
-    // Recupera o imposta la scadenza nel localStorage
+    // Genera un tempo casuale tra 2-6 ore se non esiste o è scaduto
+    const generateRandomDeadline = () => {
+      const randomHours = Math.floor(Math.random() * 4) + 2; // 2-5 ore
+      const randomMinutes = Math.floor(Math.random() * 60);
+      const randomSeconds = Math.floor(Math.random() * 60);
+      const deadline = Date.now() + (randomHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000) + (randomSeconds * 1000);
+      localStorage.setItem('tradeboost_deadline', deadline.toString());
+      return deadline;
+    };
+
     let deadline = localStorage.getItem('tradeboost_deadline');
     
-    if (!deadline) {
-      deadline = new Date(Date.now() + 24 * 60 * 60 * 1000).getTime();
-      localStorage.setItem('tradeboost_deadline', deadline);
+    // Se non esiste o è scaduto, genera nuovo countdown
+    if (!deadline || parseInt(deadline) <= Date.now()) {
+      deadline = generateRandomDeadline();
+    } else {
+      deadline = parseInt(deadline);
     }
 
     const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = parseInt(deadline) - now;
+      const now = Date.now();
+      const distance = deadline - now;
 
       if (distance <= 0) {
-        // Reset timer quando scade
-        const newDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000).getTime();
-        localStorage.setItem('tradeboost_deadline', newDeadline);
+        // Quando scade, genera nuovo countdown (loop infinito di urgency)
+        deadline = generateRandomDeadline();
         return;
       }
 
