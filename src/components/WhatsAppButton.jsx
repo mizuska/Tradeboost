@@ -20,7 +20,7 @@ const WhatsAppButton = () => {
       whileTap={{ scale: 0.95 }}
       style={{
         position: 'fixed',
-        bottom: '30px',
+        bottom: '100px', // Spostato più in alto per evitare sovrapposizione con sticky CTA mobile
         right: '30px',
         width: '60px',
         height: '60px',
