@@ -8,6 +8,7 @@ import Process from './components/Process'
 import CTA from './components/CTA'
 import FAQ from './components/FAQ'
 import Footer from './components/Footer'
+import WhatsAppButton from './components/WhatsAppButton'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <FAQ />
       </main>
       <Footer />
+      <WhatsAppButton />
     </>
   )
 }
