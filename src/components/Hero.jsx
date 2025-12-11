@@ -185,7 +185,7 @@ const Hero = () => {
             <span>Candidati Ora</span>
             <span>→</span>
           </motion.a>
-          <span style={{ fontSize: '14px', color: '#888' }}>Solo 5 posti disponibili questo mese</span>
+          <span style={{ fontSize: '14px', color: '#888' }}>Solo 3 posti disponibili questo mese</span>
         </motion.div>
       </div>
     </section>
